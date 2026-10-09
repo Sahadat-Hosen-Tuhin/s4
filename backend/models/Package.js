@@ -1,0 +1,5 @@
+import mongoose from 'mongoose'
+const imageSchema = new mongoose.Schema({ url: { type: String, required: true }, publicId: { type: String, required: true } }, { _id: false })
+const packageSchema = new mongoose.Schema({ title: { type: String, required: true, trim: true, maxlength: 140 }, slug: { type: String, required: true, unique: true }, description: { type: String, trim: true, maxlength: 8000 }, provider: { type: String, enum: ['S Alam Tours & Travels', 'S Alam Hajj Kafela'], required: true }, packageType: { type: String, trim: true }, price: { type: Number, required: true, min: 0 }, duration: { type: String, trim: true }, images: { type: [imageSchema], default: [] }, highlights: { type: [String], default: [] }, inclusions: { type: [String], default: [] }, exclusions: { type: [String], default: [] }, departureDate: Date, isPublished: { type: Boolean, default: false } }, { timestamps: true })
+packageSchema.index({ title: 'text', description: 'text' })
+export default mongoose.model('TravelPackage', packageSchema)
