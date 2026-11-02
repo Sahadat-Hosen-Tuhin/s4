@@ -5,6 +5,6 @@ export async function createSale(req, res) {
   if (!customerName || !Number.isFinite(Number(amount)) || Number(amount) < 0 || !['pending', 'paid', 'completed', 'cancelled'].includes(status)) {
     return res.status(400).json({ message: 'Customer name, a valid amount, and a supported status are required' })
   }
-  const sale = await Sale.create({ customerName: customerName.trim(), amount: Number(amount), status, note })
+  const sale = await Sale.create({ customerName: customerName.trim(), amount: Number(amount), status, note, postType: req.body.postType || null, postId: req.body.postId || null, employeeId: req.admin.role === 'employee' ? req.admin.id : req.body.employeeId || null })
   return res.status(201).json({ data: sale })
 }

@@ -1,3 +1,3 @@
 import mongoose from 'mongoose'
-const saleSchema = new mongoose.Schema({ customerName: { type: String, required: true, trim: true }, amount: { type: Number, required: true, min: 0 }, status: { type: String, enum: ['pending', 'paid', 'completed', 'cancelled'], default: 'pending' }, note: String }, { timestamps: true })
+const saleSchema = new mongoose.Schema({ customerName: { type: String, required: true, trim: true }, amount: { type: Number, required: true, min: 0 }, status: { type: String, enum: ['pending', 'confirmed', 'paid', 'completed', 'cancelled', 'refunded'], default: 'pending' }, postType: { type: String, enum: ['products', 'packages'], default: null }, postId: { type: mongoose.Schema.Types.ObjectId, default: null }, employeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee', default: null }, note: String }, { timestamps: true })
 export default mongoose.model('Sale', saleSchema)

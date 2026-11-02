@@ -1,2 +1,3 @@
 import jwt from 'jsonwebtoken'
 export function requireAuth(req, res, next) { const token = req.cookies?.s4_token || req.headers.authorization?.replace('Bearer ', ''); if (!token) return res.status(401).json({ message: 'Authentication required' }); try { req.admin = jwt.verify(token, process.env.JWT_SECRET); return next() } catch { return res.status(401).json({ message: 'Invalid or expired session' }) } }
+export function requireRole(...roles) { return (req, res, next) => { if (!req.admin || !roles.includes(req.admin.role)) return res.status(403).json({ message: 'Insufficient permissions' }); next() } }
