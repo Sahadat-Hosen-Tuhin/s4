@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { createContext, useCallback, useContext, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { BrowserRouter, Link, NavLink, Route, Routes, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowDown, ArrowRight, ArrowUpRight, Check, ChevronLeft, ChevronRight, Loader2, LogIn, LogOut, Mail, Menu, MessageCircle, Pause, Pencil, Play, Plus, Search, Send, ShoppingBag, ShoppingCart, Trash2, Upload } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, Check, ChevronLeft, ChevronRight, Loader2, LogIn, LogOut, Mail, Menu, MessageCircle, Pause, Pencil, Play, Plus, Search, Send, ShoppingBag, ShoppingCart, Trash2, Upload } from 'lucide-react'
 import { api, getApiLoadingSnapshot, getImage, subscribeToApiLoading, whatsappLink } from './services/api'
 import './App.css'
 
@@ -145,7 +145,7 @@ function ContactPage() {
     }
   }
   return <Layout><main className="contact-page">
-    <section className="contact-hero"><div className="container contact-hero-inner"><span className="eyebrow">We’re here to help</span><h1>Let’s start a<br /><em>conversation.</em></h1><p>Questions about a product, a journey, or an order? Send us a message and we’ll be glad to hear from you.</p><a className="contact-scroll-link" href="#contact-options">Choose how to reach us <ArrowDown size={16} /></a><div className="contact-hero-orb" aria-hidden="true" /></div></section>
+    <section className="contact-hero"><div className="container contact-hero-inner"><span className="eyebrow">We’re here to help</span><h1>Let’s make it personal.</h1><p>Questions about a product, a journey, or an order? We’d love to hear from you.</p><a className="contact-scroll-link" href="#contact-options">Get in touch <ArrowRight size={17} /></a><div className="contact-hero-orb" aria-hidden="true" /></div></section>
     <section className="container contact-content" id="contact-options">
       <div className="contact-main"><span className="eyebrow">Send us a note</span><h2>How can we help?</h2><p className="contact-intro">Share a few details and our team will get back to you.</p><form className="contact-form" onSubmit={submit}>
         <div className="contact-form-row"><label className="field"><span>Your name</span><input name="name" value={form.name} onChange={update} autoComplete="name" required /></label><label className="field"><span>Email address</span><input name="email" type="email" value={form.email} onChange={update} autoComplete="email" required /></label></div>
@@ -574,7 +574,7 @@ function Products() {
 function Packages() {
   const [items, setItems] = useState([]); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [params, setParams] = useSearchParams(); const requestedProvider = params.get('provider') || ''; const provider = providers.find(p => p === requestedProvider) || providers.find(p => requestedProvider.trim() && p.startsWith(requestedProvider.trim())) || requestedProvider
   useEffect(() => { setLoading(true); setError(''); api.get(`/packages?provider=${encodeURIComponent(provider)}&limit=50`).then(r => setItems(r.data.data)).catch(e => setError(e.message)).finally(() => setLoading(false)) }, [provider])
-  return <Layout><main className="container page"><div className="page-intro"><span className="eyebrow">Journeys</span><h1>Go somewhere meaningful.</h1><p>Curated travel, Hajj, and Umrah packages from people who care about the details.</p></div><div className="filter-pills"><button className={!provider ? 'active' : ''} onClick={() => setParams({})}>All packages</button>{providers.map(p => <button className={provider === p ? 'active' : ''} key={p} onClick={() => setParams({ provider: p })}>{p}</button>)}</div>{loading ? <Loading /> : error ? <ErrorState message={error} /> : items.length ? <div className="card-grid package-grid">{items.map(item => <PackageCard key={item._id} item={item} />)}</div> : <div className="empty-state"><h3>New journeys are being prepared</h3><p>Please check back soon.</p></div>}</main></Layout>
+  return <Layout><main className="container page packages-page"><div className="page-intro"><span className="eyebrow">Journeys</span><h1>Go somewhere meaningful.</h1><p>Curated travel, Hajj, and Umrah packages from people who care about the details.</p></div><div className="filter-pills"><button className={!provider ? 'active' : ''} onClick={() => setParams({})}>All packages</button>{providers.map(p => <button className={provider === p ? 'active' : ''} key={p} onClick={() => setParams({ provider: p })}>{p}</button>)}</div>{loading ? <Loading /> : error ? <ErrorState message={error} /> : items.length ? <div className="card-grid package-grid">{items.map(item => <PackageCard key={item._id} item={item} />)}</div> : <div className="empty-state"><h3>New journeys are being prepared</h3><p>Please check back soon.</p></div>}</main></Layout>
 }
 function ProductDetail({ item, slug, link }) {
   const [activeImage, setActiveImage] = useState(0)
