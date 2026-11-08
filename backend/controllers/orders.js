@@ -69,9 +69,41 @@ export async function updateOrder(req, res) {
   if (!order) return res.status(404).json({ message: 'Order not found' })
   const { status, paymentStatus, rejectionReason, note } = req.body || {}
   if (status && !['pending', 'confirmed', 'completed', 'cancelled', 'refunded'].includes(status)) return res.status(400).json({ message: 'Invalid order status' })
-  if (paymentStatus && !['unpaid', 'submitted', 'verified', 'rejected', 'refunded'].includes(paymentStatus)) return res.status(400).json({ message: 'Invalid payment status' })
+  if (paymentStatus && paymentStatus !== 'rejected') return res.status(400).json({ message: 'Record a payment amount to update payment status' })
+  if (paymentStatus === 'rejected' && order.payment.status !== 'submitted') return res.status(400).json({ message: 'Only submitted payment evidence can be rejected' })
   if (status) { order.status = status; order.statusHistory.push({ status, changedBy: req.admin.id, changedAt: new Date(), note: String(note || '') }) }
-  if (paymentStatus) { order.payment.status = paymentStatus; order.payment.rejectionReason = String(rejectionReason || ''); if (paymentStatus === 'verified') { order.payment.verifiedBy = req.admin.id; order.payment.verifiedAt = new Date() } }
+  if (paymentStatus) { order.payment.status = paymentStatus; order.payment.rejectionReason = String(rejectionReason || '') }
   await order.save()
   res.json({ data: order })
+}
+
+export async function recordOrderPayment(req, res) {
+  const order = await Order.findById(req.params.id)
+  if (!order) return res.status(404).json({ message: 'Order not found' })
+
+  const amount = Number(req.body?.amount)
+  const method = String(req.body?.method || '')
+  const transactionId = String(req.body?.transactionId || '').trim()
+  const note = String(req.body?.note || '').trim()
+  const allowedMethods = ['Cash', 'bKash', 'Nagad', 'Rocket', 'Bank transfer', 'Other']
+  if (!Number.isFinite(amount) || amount <= 0 || Math.abs(amount * 100 - Math.round(amount * 100)) > 0.0001) return res.status(400).json({ message: 'Enter a valid payment amount greater than zero (up to 2 decimal places)' })
+  if (!allowedMethods.includes(method)) return res.status(400).json({ message: 'Select a valid payment method' })
+  if (transactionId.length > 120 || note.length > 500) return res.status(400).json({ message: 'Transaction ID or note is too long' })
+  if (order.payment.status === 'refunded') return res.status(400).json({ message: 'Cannot record a payment for a refunded order' })
+
+  const total = Number(order.pricing.total)
+  const historicalVerified = order.payment.status === 'verified' && !order.payment.payments.length && !order.payment.paidAmount
+  const currentPaid = historicalVerified ? total : Number(order.payment.paidAmount || 0)
+  const remaining = Math.max(0, total - currentPaid)
+  if (amount > remaining + 0.001) return res.status(400).json({ message: `Payment exceeds the remaining balance of ${remaining}` })
+
+  const paidAmount = Math.round((currentPaid + amount) * 100) / 100
+  order.payment.payments.push({ amount, method, transactionId, note, receivedBy: req.admin.id })
+  order.payment.paidAmount = paidAmount
+  order.payment.status = paidAmount >= total ? 'paid' : 'partial'
+  order.payment.rejectionReason = ''
+  order.payment.verifiedBy = req.admin.id
+  order.payment.verifiedAt = new Date()
+  await order.save()
+  res.status(201).json({ data: order })
 }

@@ -8,6 +8,7 @@ import { connectDatabase } from './config/db.js'
 import authRoutes from './routes/auth.js'
 import employeeRoutes from './routes/employees.js'
 import requestRoutes from './routes/requests.js'
+import contactMessageRoutes from './routes/contactMessages.js'
 import employeeProfileRoutes from './routes/employee.js'
 import orderRoutes from './routes/orders.js'
 import settingsRoutes from './routes/settings.js'
@@ -38,6 +39,7 @@ app.use('/api/auth/login', rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, stan
 app.use('/api/auth', authRoutes)
 app.use('/api/admin/employees', employeeRoutes)
 app.use('/api/requests', requestRoutes)
+app.use('/api/contact-messages', contactMessageRoutes)
 app.use('/api/employee', employeeProfileRoutes)
 app.use('/api/settings', settingsRoutes)
 app.use('/api/orders', orderRoutes)

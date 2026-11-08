@@ -1,12 +1,23 @@
 import mongoose from 'mongoose'
 
+const paymentEntrySchema = new mongoose.Schema({
+  amount: { type: Number, required: true, min: 0.01 },
+  method: { type: String, enum: ['Cash', 'bKash', 'Nagad', 'Rocket', 'Bank transfer', 'Other'], required: true },
+  transactionId: { type: String, trim: true, maxlength: 120, default: '' },
+  note: { type: String, trim: true, maxlength: 500, default: '' },
+  receivedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
+  receivedAt: { type: Date, default: Date.now },
+})
+
 const paymentSchema = new mongoose.Schema({
   method: { type: String, enum: ['bKash', 'Nagad', 'Rocket', null], default: null },
   merchantNumber: { type: String, default: '' },
   senderNumber: { type: String, default: '' },
   transactionId: { type: String, trim: true, maxlength: 120, default: '' },
   screenshot: { url: { type: String, default: '' }, publicId: { type: String, default: '' } },
-  status: { type: String, enum: ['unpaid', 'submitted', 'verified', 'rejected', 'refunded'], default: 'unpaid' },
+  status: { type: String, enum: ['unpaid', 'submitted', 'partial', 'paid', 'verified', 'rejected', 'refunded'], default: 'unpaid' },
+  paidAmount: { type: Number, min: 0, default: 0 },
+  payments: { type: [paymentEntrySchema], default: [] },
   verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', default: null },
   verifiedAt: { type: Date, default: null },
   rejectionReason: { type: String, default: '' },
