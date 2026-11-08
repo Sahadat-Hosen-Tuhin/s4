@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { createContext, useCallback, useContext, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { BrowserRouter, Link, NavLink, Route, Routes, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowRight, ArrowUpRight, Check, ChevronLeft, ChevronRight, Loader2, LogIn, LogOut, Mail, Menu, MessageCircle, Pause, Pencil, Play, Plus, Search, Send, ShoppingBag, ShoppingCart, Trash2, Upload } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronLeft, ChevronRight, Clock3, Loader2, LogIn, LogOut, Mail, MapPin, Menu, MessageCircle, Pause, Pencil, Play, Plus, Search, Send, ShoppingBag, ShoppingCart, Trash2, Upload } from 'lucide-react'
 import { api, getApiLoadingSnapshot, getImage, subscribeToApiLoading, whatsappLink } from './services/api'
 import './App.css'
 
@@ -164,7 +164,7 @@ function ContactPage() {
   </main>{submitted && <div className="modal-backdrop contact-success-backdrop" onClick={() => setSubmitted(false)}><section className="contact-success-modal" role="dialog" aria-modal="true" aria-labelledby="contact-success-title" onClick={event => event.stopPropagation()}><span className="contact-success-icon"><Check size={24} /></span><span className="eyebrow">Message received</span><h2 id="contact-success-title">Thanks for reaching out.</h2><p>Your request has been delivered to our team. We’ll get back to you within 1 hour.</p><button className="btn btn-primary" type="button" onClick={() => setSubmitted(false)}>Got it</button></section></div>}</Layout>
 }
 function SectionHeading({ eyebrow, title, link, to }) { return <div className="section-heading"><div><span className="eyebrow">{eyebrow}</span><h2>{title}</h2></div>{link && <Link className="text-link" to={to}>{link} <ArrowRight size={16} /></Link>}</div> }
-function Image({ src, alt, className = '' }) { return src ? <img className={className} src={getImage(src)} alt={alt} loading="lazy" /> : <div className={`image-placeholder ${className}`}><ShoppingBag size={30} /></div> }
+function Image({ src, alt, className = '', loading = 'lazy' }) { return src ? <img className={className} src={getImage(src)} alt={alt} loading={loading} /> : <div className={`image-placeholder ${className}`}><ShoppingBag size={30} /></div> }
 function ProductCard({ item, featured = false }) {
   const [orderOpen, setOrderOpen] = useState(false)
   const [cartMessage, setCartMessage] = useState('')
@@ -627,14 +627,81 @@ function ProductDetail({ item, slug, link }) {
     {orderOpen && <OrderModal item={item} type="products" onClose={() => setOrderOpen(false)} />}
   </Layout>
 }
+function PackageDetail({ item, slug, link }) {
+  const [activeImage, setActiveImage] = useState(0)
+  const [orderOpen, setOrderOpen] = useState(false)
+  const images = item.images || []
+  const image = images[activeImage]?.url || images[0]?.url
+  const departureDate = item.departureDate
+    ? new Date(item.departureDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+    : 'Contact us for upcoming dates'
+  const lists = [
+    { key: 'highlights', initial: 'H', title: 'Highlights', items: item.highlights },
+    { key: 'inclusions', initial: 'I', title: 'Inclusions', items: item.inclusions },
+    { key: 'exclusions', initial: 'E', title: 'Exclusions', items: item.exclusions },
+  ]
+
+  return <Layout>
+    <main className="container package-detail-page" key={slug}>
+      <Link className="package-detail-back" to="/packages"><ChevronLeft size={16} /> All packages</Link>
+      <section className="package-detail-hero" aria-label={`${item.title} images`}>
+        <div className="package-detail-main-image">
+          <Image src={image} alt={item.title} loading="eager" />
+          <span className="package-detail-provider">{item.provider === providers[1] ? 'Hajj & Umrah' : 'Tours & Travels'}</span>
+          {images.length > 1 && <>
+            <button className="package-gallery-control previous" type="button" onClick={() => setActiveImage(index => (index - 1 + images.length) % images.length)} aria-label="Previous package image"><ChevronLeft size={20} /></button>
+            <button className="package-gallery-control next" type="button" onClick={() => setActiveImage(index => (index + 1) % images.length)} aria-label="Next package image"><ChevronRight size={20} /></button>
+          </>}
+        </div>
+        {images.length > 1 && <div className="package-detail-thumbnails" aria-label="Choose package image">
+          {images.map((imageItem, index) => <button className={activeImage === index ? 'active' : ''} type="button" key={imageItem.publicId || imageItem.url} onClick={() => setActiveImage(index)} aria-label={`View package image ${index + 1}`} aria-pressed={activeImage === index}>
+            <Image src={imageItem.url} alt={`${item.title} ${index + 1}`} />
+          </button>)}
+        </div>}
+      </section>
+      <section className="package-detail-summary" aria-label="Package overview">
+        <span className="eyebrow">{item.packageType || item.provider}</span>
+        <h1>{item.title}</h1>
+        <strong className="package-detail-price">From {formatMoney(item.price)}</strong>
+        {item.duration && <span className="package-detail-duration"><Clock3 size={16} />{item.duration}</span>}
+      </section>
+      {item.description && <section className="package-detail-description">
+        <span className="eyebrow">The journey</span>
+        <h2>About this package</h2>
+        <p>{item.description}</p>
+      </section>}
+      <section className="package-detail-lists" aria-label="Package details">
+        {lists.map(({ key, initial, title, items: list }) => <article className={`package-info-card package-info-${key}`} key={key}>
+          <span className="package-info-initial" aria-hidden="true">{initial}</span>
+          <span className="eyebrow">{title}</span>
+          <h2>{title}</h2>
+          {list?.length
+            ? <ul>{list.map((entry, index) => <li key={`${entry}-${index}`}><Check size={16} />{entry}</li>)}</ul>
+            : <p className="package-info-empty">Details available on request.</p>}
+        </article>)}
+      </section>
+      <section className="package-detail-departure">
+        <div className="package-departure-icon"><MapPin size={20} /></div>
+        <div><span className="eyebrow">Departure</span><strong><CalendarDays size={16} />{departureDate}</strong></div>
+      </section>
+      <section className="package-detail-actions" aria-label="Package enquiry">
+        <button className="btn btn-primary" type="button" onClick={() => setOrderOpen(true)}>Order Now <ArrowRight size={17} /></button>
+        {link
+          ? <a className="btn btn-whatsapp" href={link} target="_blank" rel="noreferrer">More information <MessageCircle size={17} /></a>
+          : <Link className="btn btn-whatsapp" to="/contact">More information <MessageCircle size={17} /></Link>}
+      </section>
+    </main>
+    {orderOpen && <OrderModal item={item} type="packages" onClose={() => setOrderOpen(false)} />}
+  </Layout>
+}
 function Detail({ type }) {
-  const { slug } = useParams(); const [item, setItem] = useState(null); const [error, setError] = useState(''); const [orderOpen, setOrderOpen] = useState(false)
+  const { slug } = useParams(); const [item, setItem] = useState(null); const [error, setError] = useState('')
   useEffect(() => { api.get(`/${type}/${slug}`).then(r => setItem(r.data.data)).catch(e => setError(e.message)) }, [type, slug])
   if (error) return <Layout><main className="container page"><ErrorState message={error} /></main></Layout>; if (!item) return <Layout><main className="container page"><Loading /></main></Layout>
   const isProduct = type === 'products'; const title = isProduct ? item.name : item.title; const message = `Hello, I would like more information about ${title}.`
   const link = whatsappLink(`${message} Link: ${window.location.href}`, item.contact?.whatsapp || undefined)
   if (isProduct) return <ProductDetail key={slug} item={item} slug={slug} link={link} />
-  return <Layout><main className="container detail-page"><Link className="back-link" to={isProduct ? '/products' : '/packages'}>← Back to {isProduct ? 'products' : 'packages'}</Link><div className="detail-grid"><div><Image src={item.images?.[0]?.url} alt={title} className="detail-image" />{item.images?.length > 1 && <div className="thumbs">{item.images.map(img => <Image key={img.publicId || img.url} src={img.url} alt={title} />)}</div>}</div><div className="detail-copy"><span className="eyebrow">{isProduct ? item.category : item.provider}</span><h1>{title}</h1>{isProduct ? <Price item={item} /> : <><strong className="price">From {formatMoney(item.price)}</strong><p className="muted">{item.duration}</p></>}<div className="detail-description">{item.description && <p>{item.description}</p>}{!isProduct && <DetailLists item={item} />}</div><div className="detail-actions"><button className="btn btn-primary" onClick={() => setOrderOpen(true)}>Order Now <ArrowRight size={17} /></button>{link ? <a className="btn btn-whatsapp" href={link} target="_blank" rel="noreferrer">For More Information on WhatsApp <ArrowRight size={17} /></a> : <p className="form-error">WhatsApp contact is currently unavailable.</p>}</div>{isProduct && <p className="availability">{item.stock > 0 ? `${item.stock} available` : 'Currently unavailable'}</p>}</div></div></main>{orderOpen && <OrderModal item={item} type={type} onClose={() => setOrderOpen(false)} />}</Layout>
+  return <PackageDetail key={slug} item={item} slug={slug} link={link} />
 }
 function CartPage() {
   const { items, cartCount, setQuantity, removeFromCart } = useCart()
@@ -684,8 +751,6 @@ function CartPage() {
     {success && <div className="modal-backdrop contact-success-backdrop"><section className="contact-success-modal" role="dialog" aria-modal="true" aria-labelledby="cart-success-title"><span className="contact-success-icon"><Check size={24} /></span><span className="eyebrow">Order received</span><h2 id="cart-success-title">Thank you for your order.</h2><p>{references.length === 1 ? 'Your order' : `Your ${references.length} orders`} {references.length === 1 ? 'has' : 'have'} been placed. Reference{references.length === 1 ? '' : 's'}: {references.join(', ')}</p><button className="btn btn-primary" type="button" onClick={() => setSuccess(false)}>Continue shopping</button></section></div>}
   </main></Layout>
 }
-function DetailLists({ item }) { return <div className="detail-lists">{[['Highlights', item.highlights], ['Inclusions', item.inclusions], ['Exclusions', item.exclusions]].map(([label, list]) => list?.length ? <div key={label}><h3>{label}</h3><ul>{list.map(x => <li key={x}><Check size={15} />{x}</li>)}</ul></div> : null)}{item.departureDate && <p><strong>Departure:</strong> {new Date(item.departureDate).toLocaleDateString()}</p>}</div> }
-
 function AdminLogin() { const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [error, setError] = useState(''); const navigate = useNavigate(); const submit = async e => { e.preventDefault(); setError(''); try { await api.post('/auth/login', { email, password }); navigate('/admin/dashboard') } catch (err) { setError(err.message) } }; return <div className="admin-login"><div className="login-card"><Logo /><span className="eyebrow">Private workspace</span><h1>Welcome back.</h1><p className="muted">Sign in to manage S4.</p><form onSubmit={submit} className="form-stack"><Field label="Email" type="email" value={email} onChange={setEmail} required /><Field label="Password" type="password" value={password} onChange={setPassword} required />{error && <p className="form-error">{error}</p>}<button className="btn btn-primary" type="submit">Sign in <ArrowRight size={17} /></button></form><Link className="back-link" to="/">← Back to website</Link></div></div> }
 function AdminLayout({ children }) { const navigate = useNavigate(); const [authorized, setAuthorized] = useState(null); useEffect(() => { api.get('/auth/me').then(r => setAuthorized(r.data.data?.role === 'admin')).catch(() => { setAuthorized(false); navigate('/admin/login') }) }, [navigate]); if (authorized === null) return <Loading />; return <div className="admin-shell"><aside className="admin-sidebar"><Logo /><nav><NavLink to="/admin/dashboard">Overview</NavLink><NavLink to="/admin/orders">Orders</NavLink><NavLink to="/admin/contact-messages">Messages</NavLink><NavLink to="/admin/settings">Settings</NavLink><NavLink to="/admin/products">Products</NavLink><NavLink to="/admin/packages">Packages</NavLink><NavLink to="/admin/employees">Employees</NavLink><NavLink to="/admin/requests">Requests</NavLink></nav><button className="logout-btn" onClick={async () => { await api.post('/auth/logout'); navigate('/admin/login') }}><LogOut size={16} /> Sign out</button></aside><main className="admin-main">{children}</main></div> }
 function Dashboard() { const [data, setData] = useState(null); useEffect(() => { api.get('/admin/dashboard').then(r => setData(r.data.data)) }, []); if (!data) return <Loading />; return <AdminLayout><AdminHeader title="Good morning." /><div className="stats-grid"><Stat label="Sales & orders with payments" value={data.paidOrders} /><Stat label="Packages" value={data.totalPackages} /><Stat label="Products" value={data.totalProducts} /><Stat label="Revenue received" value={formatMoney(data.revenue)} /></div><div className="admin-panel"><div className="panel-heading"><div><span className="eyebrow">Latest activity</span><h2>Recent sales</h2></div><span className="muted">Genuine records only</span></div>{data.recentSales?.length ? data.recentSales.map(s => <div className="sale-row" key={s._id}><div><strong>{s.customerName}</strong><span>{s.status}</span></div><strong>{formatMoney(s.amount)}</strong></div>) : <div className="empty-state small"><p>No sales have been recorded yet.</p></div>}</div></AdminLayout> }
