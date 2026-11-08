@@ -145,7 +145,7 @@ function ContactPage() {
     }
   }
   return <Layout><main className="contact-page">
-    <section className="contact-hero"><div className="container contact-hero-inner"><span className="eyebrow">We’re here to help</span><h1>Let’s make it personal.</h1><p>Questions about a product, a journey, or an order? We’d love to hear from you.</p><a className="contact-scroll-link" href="#contact-options">Get in touch <ArrowRight size={17} /></a><div className="contact-hero-orb" aria-hidden="true" /></div></section>
+    <section className="contact-hero"><div className="container contact-hero-inner"><span className="eyebrow">We’re here to help</span><h1>Let’s make it personal.</h1><p>Questions about a product, a journey, or an order? We’d love to hear from you.</p><div className="contact-hero-orb" aria-hidden="true" /></div></section>
     <section className="container contact-content" id="contact-options">
       <div className="contact-main"><span className="eyebrow">Send us a note</span><h2>How can we help?</h2><p className="contact-intro">Share a few details and our team will get back to you.</p><form className="contact-form" onSubmit={submit}>
         <div className="contact-form-row"><label className="field"><span>Your name</span><input name="name" value={form.name} onChange={update} autoComplete="name" required /></label><label className="field"><span>Email address</span><input name="email" type="email" value={form.email} onChange={update} autoComplete="email" required /></label></div>
