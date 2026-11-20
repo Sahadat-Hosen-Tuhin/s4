@@ -625,6 +625,22 @@
 .sale-row span,.admin-row span { color:var(--muted); font-size:12px; }
 .admin-table { display:grid; }
 .admin-row img { width:50px; height:50px; background:#e4ddd0; object-fit:cover; }
+.admin-item-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr)); gap:18px; }
+.admin-item-card { min-width:0; overflow:hidden; border:1px solid rgba(48,51,56,.1); border-radius:10px; background:#fff; transition:transform .2s,box-shadow .2s,border-color .2s; }
+.admin-item-card:hover { transform:translateY(-3px); border-color:rgba(255,120,0,.35); box-shadow:0 12px 26px rgba(48,51,56,.1); }
+.admin-item-image { position:relative; height:210px; overflow:hidden; background:#eee8dc; }
+.admin-item-image > img,.admin-item-image > .image-placeholder { display:flex; width:100%; height:100%; object-fit:cover; }
+.admin-item-image > img { transition:transform .35s ease; }
+.admin-item-card:hover .admin-item-image > img { transform:scale(1.04); }
+.admin-item-status { position:absolute; top:12px; left:12px; padding:6px 9px; border-radius:20px; background:#fffdf8; font-size:10px !important; font-weight:700; letter-spacing:.03em; }
+.admin-item-content { display:grid; gap:9px; padding:16px; }
+.admin-item-kicker { overflow:hidden; color:#e86b00; font-size:10px; font-weight:700; letter-spacing:.1em; text-overflow:ellipsis; text-transform:uppercase; white-space:nowrap; }
+.admin-item-content h2 { display:-webkit-box; min-height:2.6em; margin:0; overflow:hidden; color:#303338; font:600 17px/1.3 'DM Sans',sans-serif; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
+.admin-item-meta { display:flex; align-items:center; justify-content:space-between; gap:8px; padding-top:10px; border-top:1px solid var(--line); }
+.admin-item-meta strong { color:#303338; font-size:15px; }
+.admin-item-meta span { color:var(--muted); font-size:11px; }
+.admin-item-actions { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.admin-item-actions .btn { min-height:38px; padding:9px 13px; font-size:11px; }
 .admin-main .field input:focus,.admin-main .field textarea:focus,.admin-main .field select:focus { border-color:#e86b00; box-shadow:0 0 0 3px rgba(255,120,0,.12); }
 .admin-shell .btn-primary { background:var(--gold); color:#303338; }
 .admin-shell .btn-primary:hover { background:#e86b00; }

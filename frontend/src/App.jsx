@@ -889,7 +889,58 @@ function ContactMessages() {
   </div></AdminLayout>
 }
 function AdminSettings() { const [form, setForm] = useState({ whatsappNumber: '', enabledPaymentMethods: [], defaultDeliveryCharge: 0, defaultAdvanceAmount: 0, merchantAccounts: {} }); const [message, setMessage] = useState(''); const [error, setError] = useState(''); useEffect(() => { api.get('/settings').then(r => setForm(r.data.data)).catch(e => setError(e.message)) }, []); const toggle = method => setForm({ ...form, enabledPaymentMethods: form.enabledPaymentMethods.includes(method) ? form.enabledPaymentMethods.filter(x => x !== method) : [...form.enabledPaymentMethods, method] }); const save = async e => { e.preventDefault(); try { await api.put('/settings', form); setMessage('Settings saved.') } catch (err) { setError(err.message) } }; return <AdminLayout><AdminHeader title="Business settings" /><form className="admin-panel form-stack" onSubmit={save}><Field label="Global WhatsApp number" value={form.whatsappNumber} onChange={value => setForm({ ...form, whatsappNumber: value })} /><Field label="Default delivery charge" type="number" value={form.defaultDeliveryCharge} onChange={value => setForm({ ...form, defaultDeliveryCharge: value })} /><Field label="Advance delivery amount" type="number" value={form.defaultAdvanceAmount} onChange={value => setForm({ ...form, defaultAdvanceAmount: value })} /><div><strong>Enabled payment methods</strong>{['bKash', 'Nagad', 'Rocket'].map(method => <label className="check-row" key={method}><input type="checkbox" checked={form.enabledPaymentMethods.includes(method)} onChange={() => toggle(method)} /> {method}<Field label={`${method} merchant number`} value={form.merchantAccounts?.[method] || ''} onChange={value => setForm({ ...form, merchantAccounts: { ...form.merchantAccounts, [method]: value } })} /></label>)}</div>{error && <p className="form-error">{error}</p>}{message && <p className="success-message">{message}</p>}<button className="btn btn-primary">Save settings</button></form></AdminLayout> }
-function AdminList({ type }) { const isProduct = type === 'products'; const [items, setItems] = useState([]); const [loading, setLoading] = useState(true); const load = () => { setLoading(true); api.get(`/${type}?includeUnpublished=true&limit=100`).then(r => setItems(r.data.data)).finally(() => setLoading(false)) }; useEffect(load, [type]); const remove = async id => { if (!window.confirm('Delete this item? This cannot be undone.')) return; await api.delete(`/${type}/${id}`); load() }; return <AdminLayout><AdminHeader title={isProduct ? 'Products' : 'Travel packages'} action={<Link className="btn btn-primary" to={`/admin/${type}/new`}><Plus size={17} /> Add {isProduct ? 'product' : 'package'}</Link>} /><div className="admin-panel">{loading ? <Loading /> : items.length ? <div className="admin-table">{items.map(item => <div className="admin-row" key={item._id}><Image src={item.images?.[0]?.url} alt="" /><div><strong>{isProduct ? item.name : item.title}</strong><span>{isProduct ? item.category : item.provider}</span></div><span className={item.isPublished ? 'published' : 'unpublished'}>{item.isPublished ? 'Published' : 'Draft'}</span><span>{formatMoney(item[isProduct ? 'price' : 'price'])}</span><Link className="icon-btn" to={`/admin/${type}/${item._id}/edit`} aria-label="Edit"><Pencil size={16} /></Link><button className="icon-btn danger" onClick={() => remove(item._id)} aria-label="Delete"><Trash2 size={16} /></button></div>)}</div> : <div className="empty-state"><p>No items yet.</p></div>}</div></AdminLayout> }
+function AdminList({ type }) {
+  const isProduct = type === 'products'
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const load = () => {
+    setLoading(true)
+    api.get(`/${type}?includeUnpublished=true&limit=100`).then(r => setItems(r.data.data)).finally(() => setLoading(false))
+  }
+  useEffect(load, [type])
+  const remove = async id => {
+    if (!window.confirm('Delete this item? This cannot be undone.')) return
+    await api.delete(`/${type}/${id}`)
+    load()
+  }
+  return <AdminLayout>
+    <AdminHeader title={isProduct ? 'Products' : 'Travel packages'} action={<Link className="btn btn-primary" to={`/admin/${type}/new`}><Plus size={17} /> Add {isProduct ? 'product' : 'package'}</Link>} />
+    <div className="admin-panel">
+      {loading ? <Loading /> : items.length ? isProduct
+        ? <div className="admin-item-grid">{items.map(item => <article className="admin-item-card" key={item._id}>
+          <div className="admin-item-image">
+            <Image src={item.images?.[0]?.url} alt={item.name} />
+            <span className={`admin-item-status ${item.isPublished ? 'published' : 'unpublished'}`}>{item.isPublished ? 'Published' : 'Draft'}</span>
+          </div>
+          <div className="admin-item-content">
+            <span className="admin-item-kicker">{item.category}</span>
+            <h2>{item.name}</h2>
+            <div className="admin-item-meta"><strong>{formatMoney(item.price)}</strong><span>{item.stock} in stock</span></div>
+            <div className="admin-item-actions">
+              <Link className="btn btn-ghost" to={`/admin/${type}/${item._id}/edit`}><Pencil size={15} /> Edit</Link>
+              <button className="icon-btn danger" onClick={() => remove(item._id)} aria-label={`Delete ${item.name}`}><Trash2 size={16} /></button>
+            </div>
+          </div>
+        </article>)}</div>
+        : <div className="admin-item-grid">{items.map(item => <article className="admin-item-card" key={item._id}>
+          <div className="admin-item-image">
+            <Image src={item.images?.[0]?.url} alt={item.title} />
+            <span className={`admin-item-status ${item.isPublished ? 'published' : 'unpublished'}`}>{item.isPublished ? 'Published' : 'Draft'}</span>
+          </div>
+          <div className="admin-item-content">
+            <span className="admin-item-kicker">{item.duration || item.provider || 'Travel package'}</span>
+            <h2>{item.title}</h2>
+            <div className="admin-item-meta"><strong>From {formatMoney(item.price)}</strong><span>{item.provider}</span></div>
+            <div className="admin-item-actions">
+              <Link className="btn btn-ghost" to={`/admin/${type}/${item._id}/edit`}><Pencil size={15} /> Edit</Link>
+              <button className="icon-btn danger" onClick={() => remove(item._id)} aria-label={`Delete ${item.title}`}><Trash2 size={16} /></button>
+            </div>
+          </div>
+        </article>)}</div>
+        : <div className="empty-state"><p>No items yet.</p></div>}
+    </div>
+  </AdminLayout>
+}
 function Field({ label, name, value, onChange, type = 'text', required, placeholder }) { return <label className="field"><span>{label}</span><input name={name} type={type} value={value ?? ''} onChange={e => onChange(e.target.value)} required={required} placeholder={placeholder} /></label> }
 function Textarea({ label, value, onChange, placeholder }) { return <label className="field"><span>{label}</span><textarea value={value ?? ''} onChange={e => onChange(e.target.value)} placeholder={placeholder} rows="4" /></label> }
 function AdminForm({ type, editId: providedEditId }) {
